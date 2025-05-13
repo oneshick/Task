@@ -1,0 +1,6 @@
+CREATE TABLE tasks
+(
+    id     VARCHAR(255) PRIMARY KEY,
+    title  VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL
+);

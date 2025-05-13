@@ -1,7 +1,6 @@
 package db
 
 import (
-	"Tasks/internal/taskService"
 	"github.com/labstack/gommon/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -17,10 +16,6 @@ func InitDB() (*gorm.DB, error) {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-
-	if err := db.AutoMigrate(&taskService.Task{}); err != nil {
-		log.Fatalf("Failed to migrate table: %v", err)
-	}
-
+	
 	return db, nil
 }
