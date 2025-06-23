@@ -4,3 +4,4 @@ CREATE TABLE tasks
     title  VARCHAR(255) NOT NULL,
     status VARCHAR(255) NOT NULL
 );
+
