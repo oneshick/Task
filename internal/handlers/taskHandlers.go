@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"Tasks/internal/taskService"
-	"github.com/labstack/echo/v4"
-	"net/http"
+	"Tasks/internal/web/tasks"
+	"context"
 )
 
 type TaskHandler struct {
@@ -14,53 +14,80 @@ func NewTaskHandler(s taskService.TaskService) *TaskHandler {
 	return &TaskHandler{service: s}
 }
 
-func (h *TaskHandler) GetTasks(c echo.Context) error {
-	tasks, err := h.service.GetAllTasks()
-
+func (h *TaskHandler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject) (tasks.GetTasksResponseObject, error) {
+	allTasks, err := h.service.GetAllTasks()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Error fetching tasks"})
+		return nil, err
 	}
 
-	return c.JSON(http.StatusOK, tasks)
+	response := tasks.GetTasks200JSONResponse{}
+	for _, t := range allTasks {
+		task := tasks.Task{
+			Id:     &t.ID,
+			Title:  &t.Title,
+			Status: &t.Status,
+		}
+		response = append(response, task)
+	}
+
+	return response, nil
 }
 
-func (h *TaskHandler) CreateTask(c echo.Context) error {
-	var req taskService.TaskRequest
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+func (h *TaskHandler) PostTasks(_ context.Context, request tasks.PostTasksRequestObject) (tasks.PostTasksResponseObject, error) {
+	taskRequest := request.Body
+
+	taskToCreate := taskService.Task{
+		Title:  taskRequest.Title,
+		Status: taskRequest.Status,
 	}
 
-	task, err := h.service.CreateTask(req.Title, req.Status)
-
+	createdTask, err := h.service.CreateTask(taskToCreate)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Error creating task"})
+		return nil, err
 	}
 
-	return c.JSON(http.StatusCreated, task)
+	response := tasks.PostTasks201JSONResponse{
+		Id:     &createdTask.ID,
+		Title:  &createdTask.Title,
+		Status: &createdTask.Status,
+	}
+
+	return response, nil
 }
 
-func (h *TaskHandler) UpdateTask(c echo.Context) error {
-	id := c.Param("id")
+func (h *TaskHandler) PatchTask(_ context.Context, req tasks.PatchTaskRequestObject) (tasks.PatchTaskResponseObject, error) {
+	id := req.Id
+	body := req.Body
 
-	var req taskService.TaskRequest
-	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
-	}
-
-	updatedTask, err := h.service.UpdateTask(id, req.Title, req.Status)
-
+	task, err := h.service.GetTaskById(id)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "Error updating task"})
+		return tasks.PatchTask404Response{}, nil
 	}
 
-	return c.JSON(http.StatusOK, updatedTask)
+	if body.Title != nil {
+		task.Title = *body.Title
+	}
+	if body.Status != nil {
+		task.Status = *body.Status
+	}
+
+	updatedTask, err := h.service.UpdateTask(task)
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks.PatchTask200JSONResponse{
+		Id:     &updatedTask.ID,
+		Title:  &updatedTask.Title,
+		Status: &updatedTask.Status,
+	}, nil
 }
 
-func (h *TaskHandler) DeleteTask(c echo.Context) error {
-	id := c.Param("id")
+func (h *TaskHandler) DeleteTasksId(_ context.Context, request tasks.DeleteTasksIdRequestObject) (tasks.DeleteTasksIdResponseObject, error) {
+	id := request.Id
 
 	if err := h.service.DeleteTask(id); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Error deleting task"})
+		return nil, err
 	}
-	return c.NoContent(http.StatusNoContent)
+	return nil, nil
 }

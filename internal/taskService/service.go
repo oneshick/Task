@@ -3,10 +3,10 @@ package taskService
 import "github.com/google/uuid"
 
 type TaskService interface {
-	CreateTask(title, status string) (Task, error)
+	CreateTask(task Task) (Task, error)
 	GetAllTasks() ([]Task, error)
 	GetTaskById(id string) (Task, error)
-	UpdateTask(id, title, status string) (Task, error)
+	UpdateTask(task Task) (Task, error)
 	DeleteTask(id string) error
 }
 
@@ -18,12 +18,8 @@ func NewTaskService(r TaskRepository) TaskService {
 	return &taskService{repo: r}
 }
 
-func (s *taskService) CreateTask(title, status string) (Task, error) {
-	task := Task{
-		ID:     uuid.NewString(),
-		Title:  title,
-		Status: status,
-	}
+func (s *taskService) CreateTask(task Task) (Task, error) {
+	task.ID = uuid.NewString()
 
 	if err := s.repo.CreateTask(task); err != nil {
 		return Task{}, err
@@ -40,15 +36,7 @@ func (s *taskService) GetTaskById(id string) (Task, error) {
 	return s.repo.GetTaskById(id)
 }
 
-func (s *taskService) UpdateTask(id, title, status string) (Task, error) {
-	task, err := s.repo.GetTaskById(id)
-	if err != nil {
-		return Task{}, err
-	}
-
-	task.Title = title
-	task.Status = status
-
+func (s *taskService) UpdateTask(task Task) (Task, error) {
 	if err := s.repo.UpdateTask(task); err != nil {
 		return Task{}, err
 	}
