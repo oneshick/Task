@@ -24,6 +24,9 @@ type Task struct {
 
 	// Title Task title
 	Title *string `json:"title,omitempty"`
+
+	// UserId ID of the user who owns the task
+	UserId *string `json:"user_id,omitempty"`
 }
 
 // TaskRequest defines model for TaskRequest.
@@ -33,6 +36,9 @@ type TaskRequest struct {
 
 	// Title Task title
 	Title string `json:"title"`
+
+	// UserId ID of the user who owns the task
+	UserId string `json:"user_id"`
 }
 
 // TaskUpdateRequest defines model for TaskUpdateRequest.
@@ -42,6 +48,9 @@ type TaskUpdateRequest struct {
 
 	// Title Task title
 	Title *string `json:"title,omitempty"`
+
+	// UserId ID of the user (optional in patch)
+	UserId *string `json:"user_id,omitempty"`
 }
 
 // PostTasksJSONRequestBody defines body for PostTasks for application/json ContentType.

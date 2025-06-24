@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"Tasks/internal/models"
 	"Tasks/internal/userService"
 	"Tasks/internal/web/users"
 	"context"
@@ -14,6 +15,29 @@ type UserHandler struct {
 
 func NewUserHandler(s userService.UserService) *UserHandler {
 	return &UserHandler{service: s}
+}
+
+func (h *UserHandler) GetUsersIdTasks(_ context.Context, request users.GetUsersIdTasksRequestObject) (users.GetUsersIdTasksResponseObject, error) {
+	id := request.Id
+
+	tasks, err := h.service.GetTasksForUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Преобразуем []models.Task в []users.Task (если типы разные)
+	var response users.GetUsersIdTasks200JSONResponse
+	for _, t := range tasks {
+		task := users.Task{
+			Id:     &t.ID,
+			Title:  &t.Title,
+			Status: &t.Status,
+			UserId: &t.UserID,
+		}
+		response = append(response, task)
+	}
+
+	return response, nil
 }
 
 func (h *UserHandler) GetUsers(_ context.Context, _ users.GetUsersRequestObject) (users.GetUsersResponseObject, error) {
@@ -35,7 +59,7 @@ func (h *UserHandler) GetUsers(_ context.Context, _ users.GetUsersRequestObject)
 func (h *UserHandler) PostUser(_ context.Context, request users.PostUserRequestObject) (users.PostUserResponseObject, error) {
 	userRequest := request.Body
 
-	UserToCreate := userService.User{
+	UserToCreate := models.User{
 		Email:    userRequest.Email,
 		Password: userRequest.Password,
 	}

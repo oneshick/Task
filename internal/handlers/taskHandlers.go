@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"Tasks/internal/models"
 	"Tasks/internal/taskService"
 	"Tasks/internal/web/tasks"
 	"context"
@@ -12,6 +13,10 @@ type TaskHandler struct {
 
 func NewTaskHandler(s taskService.TaskService) *TaskHandler {
 	return &TaskHandler{service: s}
+}
+
+func (h *TaskHandler) GetTasksByUserID(_ context.Context, userID string) ([]models.Task, error) {
+	return h.service.GetTasksByUserID(userID)
 }
 
 func (h *TaskHandler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject) (tasks.GetTasksResponseObject, error) {
@@ -36,9 +41,10 @@ func (h *TaskHandler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject)
 func (h *TaskHandler) PostTasks(_ context.Context, request tasks.PostTasksRequestObject) (tasks.PostTasksResponseObject, error) {
 	taskRequest := request.Body
 
-	taskToCreate := taskService.Task{
+	taskToCreate := models.Task{
 		Title:  taskRequest.Title,
 		Status: taskRequest.Status,
+		UserID: taskRequest.UserId,
 	}
 
 	createdTask, err := h.service.CreateTask(taskToCreate)
@@ -50,6 +56,7 @@ func (h *TaskHandler) PostTasks(_ context.Context, request tasks.PostTasksReques
 		Id:     &createdTask.ID,
 		Title:  &createdTask.Title,
 		Status: &createdTask.Status,
+		UserId: &createdTask.UserID,
 	}
 
 	return response, nil

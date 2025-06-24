@@ -1,12 +1,15 @@
 package userService
 
-import "gorm.io/gorm"
+import (
+	"Tasks/internal/models"
+	"gorm.io/gorm"
+)
 
 type UserRepository interface {
-	CreateUser(u User) error
-	GetAllUser() ([]User, error)
-	GetUserById(id string) (User, error)
-	UpdateUser(u User) error
+	CreateUser(u models.User) error
+	GetAllUser() ([]models.User, error)
+	GetUserById(id string) (models.User, error)
+	UpdateUser(u models.User) error
 	DeleteUser(id string) error
 }
 
@@ -18,26 +21,26 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) CreateUser(u User) error {
+func (r *userRepository) CreateUser(u models.User) error {
 	return r.db.Create(&u).Error
 }
 
-func (r *userRepository) GetAllUser() ([]User, error) {
-	var users []User
+func (r *userRepository) GetAllUser() ([]models.User, error) {
+	var users []models.User
 	err := r.db.Find(&users).Error
 	return users, err
 }
 
-func (r *userRepository) GetUserById(id string) (User, error) {
-	var user User
+func (r *userRepository) GetUserById(id string) (models.User, error) {
+	var user models.User
 	err := r.db.First(&user, "id = ?", id).Error
 	return user, err
 }
 
-func (r *userRepository) UpdateUser(u User) error {
+func (r *userRepository) UpdateUser(u models.User) error {
 	return r.db.Save(&u).Error
 }
 
 func (r *userRepository) DeleteUser(id string) error {
-	return r.db.Delete(&User{}, "id = ?", id).Error
+	return r.db.Delete(&models.User{}, "id = ?", id).Error
 }
